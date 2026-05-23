@@ -172,8 +172,59 @@ textarea:focus { border-color:var(--green); }
 textarea::placeholder { color:var(--text3); }
 
 /* Generate button */
-.btn-gen {
-  background:var(--green);
+.btn-news {
+  width:100%;
+  background:linear-gradient(135deg,rgba(232,212,77,0.1),rgba(46,204,138,0.1));
+  border:1px solid rgba(232,212,77,0.3);
+  color:var(--yellow);
+  font-family:'Heebo',sans-serif;
+  font-size:15px;
+  font-weight:800;
+  padding:14px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all 0.2s;
+  letter-spacing:0.3px;
+}
+
+.btn-news:hover {
+  background:linear-gradient(135deg,rgba(232,212,77,0.18),rgba(46,204,138,0.15));
+  transform:translateY(-1px);
+  box-shadow:0 4px 20px rgba(232,212,77,0.15);
+}
+
+.btn-news:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+.news-item {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:all 0.18s;
+  text-align:right;
+}
+
+.news-item:hover { border-color:var(--green); background:rgba(46,204,138,0.05); }
+.news-item.selected { border-color:var(--green); background:rgba(46,204,138,0.08); }
+
+.news-headline {
+  font-size:13px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:6px;
+  line-height:1.4;
+}
+
+.news-angle {
+  font-size:12px;
+  font-weight:400;
+  color:var(--yellow);
+  line-height:1.5;
+  opacity:0.85;
+}
+
+.news-angle::before { content:'⚡ זווית: '; font-weight:700; }
   color:#050a06;
   font-family:'Heebo',sans-serif;
   font-size:15px;
@@ -814,6 +865,12 @@ textarea::placeholder { color:var(--text3); }
 
   <!-- Controls -->
   <div class="card">
+    <div class="card-label">🔥 חדשות חמות — זווית ויראלית</div>
+    <button class="btn-news" id="newsBtn" onclick="fetchHotNews()">⚡ מה חם בשוק עכשיו?</button>
+    <div id="newsResults" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:8px;"></div>
+  </div>
+
+  <div class="card">
     <div class="card-label">נושאים מוכנים</div>
     <div class="topic-grid" id="topicGrid">
       <button class="topic-btn" onclick="selectTopic(this,'ריבית דריבית וכוח הזמן')">⏳ ריבית דריבית</button>
@@ -884,6 +941,50 @@ function selectTopic(btn, topic) {
   btn.classList.add('active');
   selectedTopic = topic;
   document.getElementById('freeInput').value = '';
+}
+
+async function fetchHotNews() {
+  const btn = document.getElementById('newsBtn');
+  const results = document.getElementById('newsResults');
+  btn.disabled = true;
+  btn.textContent = '⏳ מחפש חדשות חמות...';
+  results.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/news', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    results.innerHTML = '';
+    results.style.display = 'flex';
+
+    data.news.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.innerHTML = `
+        <div class="news-headline">${item.headline}</div>
+        <div class="news-angle">${item.viral_angle}</div>
+      `;
+      div.onclick = () => {
+        document.querySelectorAll('.news-item').forEach(d => d.classList.remove('selected'));
+        div.classList.add('selected');
+        document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('freeInput').value = '';
+        selectedTopic = `חדשה: ${item.headline}. זווית ויראלית: ${item.viral_angle}. ${item.context}`;
+      };
+      results.appendChild(div);
+    });
+
+  } catch(e) {
+    results.style.display = 'flex';
+    results.innerHTML = `<p style="color:var(--text2);font-size:13px;text-align:center;">שגיאה: ${e.message}</p>`;
+  }
+
+  btn.textContent = '⚡ מה חם בשוק עכשיו?';
+  btn.disabled = false;
 }
 
 async function generate() {
