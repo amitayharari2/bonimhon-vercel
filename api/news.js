@@ -18,15 +18,14 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 1000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        system: `החזר JSON בלבד עם 3 חדשות פיננסיות חמות לישראלים. ללא טקסט נוסף.
-{"news":[{"headline":"כותרת בעברית","viral_angle":"זווית ויראלית קצרה","context":"הקשר קצר"}]}
-חדשות רלוונטיות: שוק ההון, ריבית, מניות גדולות, כלכלה ישראלית וגלובלית. הכל בעברית.`,
+        model: 'claude-sonnet-4-5',
+        max_tokens: 800,
+        system: `Return ONLY valid JSON with no other text before or after it:
+{"news":[{"headline":"כותרת","viral_angle":"זווית","context":"הקשר"}]}
+Exactly 3 news items about financial markets relevant to Israeli investors this week. All values in Hebrew.`,
         messages: [{ 
           role: 'user', 
-          content: 'תן לי 3 חדשות פיננסיות חמות מהשבוע האחרון עם זווית ויראלית לכל אחת.' 
+          content: '3 hot financial news items this week with viral angles for Israeli investors.' 
         }]
       })
     });
