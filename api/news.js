@@ -40,21 +40,24 @@ export default async function handler(req, res) {
     const rawText = data.content
       .filter(c => c.type === 'text')
       .map(c => c.text)
-      .join('');
+      .join('')
+      .replace(/```json\s*/gi, '')
+      .replace(/```\s*/g, '');
 
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    // Find the news JSON object specifically
+    const jsonMatch = rawText.match(/\{\s*"news"\s*:\s*\[[\s\S]*?\]\s*\}/);
     if (!jsonMatch) {
-      return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 200) });
+      // Fallback: try any JSON object
+      const fallback = rawText.match(/\{[\s\S]*\}/);
+      if (!fallback) {
+        return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 300) });
+      }
+      const cleaned = fallback[0].replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\s+/g, ' ');
+      return res.status(200).json(JSON.parse(cleaned));
     }
 
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonMatch[0].replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ''));
-    } catch(e) {
-      parsed = JSON.parse(jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, ''));
-    }
-
-    return res.status(200).json(parsed);
+    const cleaned = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\s+/g, ' ');
+    return res.status(200).json(JSON.parse(cleaned));
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
