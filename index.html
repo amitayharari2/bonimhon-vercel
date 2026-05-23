@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בונים הון | מחולל סליידים</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg: #050a06;
+  --surface: #0c1510;
+  --surface2: #111d14;
+  --border: #1a2e1e;
+  --green: #2ecc8a;
+  --green2: #3ddfa0;
+  --yellow: #e8d44d;
+  --text: #f0f5f0;
+  --text2: #7a9a7a;
+  --text3: #2a4a2a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Heebo', sans-serif;
+  min-height: 100vh;
+  direction: rtl;
+}
+
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 0% 0%, rgba(46,204,138,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(232,212,77,0.04) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.app {
+  position:relative;
+  z-index:1;
+  max-width:680px;
+  margin:0 auto;
+  padding:48px 20px 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align:center;
+  margin-bottom:40px;
+}
+
+.logo {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.logo-dot {
+  width:8px; height:8px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 12px rgba(46,204,138,0.8);
+}
+
+.logo-name {
+  font-size:20px;
+  font-weight:900;
+  color:var(--text);
+  letter-spacing:-0.5px;
+}
+
+.logo-name span { color:var(--green); }
+
+.header h1 {
+  font-size:clamp(24px,5vw,36px);
+  font-weight:900;
+  line-height:1.15;
+  margin-bottom:8px;
+}
+
+.header h1 span { color:var(--green); }
+
+.header p {
+  color:var(--text2);
+  font-size:14px;
+  font-weight:300;
+}
+
+/* ── CONTROL CARD ── */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 4px 32px rgba(0,0,0,0.5);
+}
+
+.card-label {
+  font-size:11px;
+  font-weight:700;
+  color:var(--text2);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+
+/* Topic grid */
+.topic-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.topic-btn {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-family:'Heebo',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  padding:10px 14px;
+  border-radius:9px;
+  cursor:pointer;
+  text-align:right;
+  transition:all 0.18s;
+  line-height:1.4;
+}
+
+.topic-btn:hover { border-color:var(--green); color:var(--text); }
+
+.topic-btn.active {
+  background:rgba(46,204,138,0.08);
+  border-color:var(--green);
+  color:var(--green);
+}
+
+/* Free input */
+.free-row {
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+  margin-top:4px;
+}
+
+textarea {
+  flex:1;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'Heebo',sans-serif;
+  font-size:14px;
+  padding:12px 16px;
+  border-radius:10px;
+  outline:none;
+  resize:none;
+  direction:rtl;
+  line-height:1.6;
+  transition:border-color 0.2s;
+  height:80px;
+}
+
+textarea:focus { border-color:var(--green); }
+textarea::placeholder { color:var(--text3); }
+
+/* Generate button */
+.btn-gen {
+  background:var(--green);
+  color:#050a06;
+  font-family:'Heebo',sans-serif;
+  font-size:15px;
+  font-weight:900;
+  padding:0 28px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  white-space:nowrap;
+  letter-spacing:0.3px;
+  transition:all 0.2s;
+  min-width:130px;
+}
+
+.btn-gen:hover { background:var(--green2); transform:translateY(-1px); }
+.btn-gen:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+/* ── CAROUSEL VIEWER ── */
+.carousel-wrap {
+  display:none;
+  flex-direction:column;
+  gap:16px;
+}
+
+.carousel-wrap.visible { display:flex; }
+
+/* Slide display */
+.slide-viewport {
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.slides-track {
+  display:flex;
+  width:100%;
+  height:100%;
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+.slide-frame {
+  min-width:100%;
+  height:100%;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ── SLIDE DESIGN ── */
+.slide-bg {
+  position:absolute;
+  inset:0;
+  background:linear-gradient(145deg,#0a1a0e 0%,#050a06 55%,#0d1508 100%);
+}
+
+.slide-orb1 {
+  position:absolute;
+  top:-80px; left:-80px;
+  width:340px; height:340px;
+  background:radial-gradient(circle,rgba(46,204,138,0.16) 0%,transparent 65%);
+  pointer-events:none;
+}
+
+.slide-orb2 {
+  position:absolute;
+  bottom:-80px; right:-80px;
+  width:280px; height:280px;
+  background:radial-gradient(circle,rgba(232,212,77,0.07) 0%,transparent 65%);
+  pointer-events:none;
+}
+
+.slide-grid {
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(46,204,138,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(46,204,138,0.03) 1px,transparent 1px);
+  background-size:45px 45px;
+}
+
+.slide-bar {
+  position:absolute;
+  top:0; right:0;
+  width:3px; height:100%;
+  background:linear-gradient(180deg,var(--green) 0%,transparent 100%);
+  opacity:0.45;
+}
+
+.corner-tl {
+  position:absolute;
+  top:18px; right:18px;
+  width:22px; height:22px;
+  border-top:1.5px solid rgba(46,204,138,0.2);
+  border-right:1.5px solid rgba(46,204,138,0.2);
+}
+
+.corner-br {
+  position:absolute;
+  bottom:18px; left:18px;
+  width:22px; height:22px;
+  border-bottom:1.5px solid rgba(46,204,138,0.2);
+  border-left:1.5px solid rgba(46,204,138,0.2);
+}
+
+.slide-content {
+  position:relative;
+  z-index:10;
+  width:100%;
+  height:100%;
+  padding:clamp(24px,5%,40px) clamp(28px,6%,48px);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  font-family:'Heebo',sans-serif;
+}
+
+/* Slide top */
+.sl-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand-pill {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(46,204,138,0.08);
+  border:1px solid rgba(46,204,138,0.2);
+  border-radius:20px;
+  padding:5px 12px 5px 8px;
+}
+
+.bp-dot {
+  width:6px; height:6px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 8px rgba(46,204,138,0.9);
+}
+
+.bp-name {
+  font-size:11px;
+  font-weight:800;
+  color:var(--green);
+  letter-spacing:1px;
+}
+
+.sl-counter {
+  font-size:10px;
+  color:rgba(240,245,240,0.22);
+  font-weight:300;
+  letter-spacing:2px;
+}
+
+/* Slide body */
+.sl-body {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:clamp(10px,2%,16px);
+  padding:12px 0 6px;
+}
+
+.sl-eyebrow {
+  font-size:10px;
+  font-weight:700;
+  color:var(--yellow);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  opacity:0.85;
+}
+
+.sl-headline {
+  font-size:clamp(26px,6.5%,38px);
+  font-weight:900;
+  color:var(--text);
+  line-height:1.15;
+  letter-spacing:-1px;
+}
+
+.sl-headline .g { color:var(--green); }
+.sl-headline .y { color:var(--yellow); }
+
+.sl-rule {
+  width:32px; height:2px;
+  background:linear-gradient(90deg,var(--green),transparent);
+  border-radius:2px;
+  flex-shrink:0;
+}
+
+.sl-body-text {
+  font-size:clamp(13px,2.8%,16px);
+  font-weight:300;
+  color:rgba(240,245,240,0.65);
+  line-height:1.7;
+}
+
+.sl-body-text b {
+  color:var(--text);
+  font-weight:700;
+}
+
+/* Stat boxes */
+.sl-stats {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.sl-stat {
+  background:rgba(46,204,138,0.07);
+  border:1px solid rgba(46,204,138,0.18);
+  border-radius:8px;
+  padding:8px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.sl-stat.y {
+  background:rgba(232,212,77,0.06);
+  border-color:rgba(232,212,77,0.18);
+}
+
+.stat-n {
+  font-size:clamp(20px,4.5%,28px);
+  font-weight:900;
+  color:var(--green);
+  line-height:1;
+  letter-spacing:-0.5px;
+}
+
+.sl-stat.y .stat-n { color:var(--yellow); }
+
+.stat-l {
+  font-size:10px;
+  color:rgba(240,245,240,0.4);
+  font-weight:400;
+}
+
+/* Bullet list */
+.sl-list {
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.sl-list li {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:clamp(12px,2.6%,15px);
+  font-weight:400;
+  color:rgba(240,245,240,0.75);
+  line-height:1.5;
+}
+
+.sl-list li::before {
+  content:'';
+  width:5px; height:5px;
+  background:var(--green);
+  border-radius:50%;
+  flex-shrink:0;
+  margin-top:6px;
+  box-shadow:0 0 6px rgba(46,204,138,0.6);
+}
+
+/* Slide bottom */
+.sl-bottom {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.sl-swipe {
+  font-size:10px;
+  color:rgba(240,245,240,0.22);
+  font-weight:300;
+  letter-spacing:0.5px;
+}
+
+.sl-disclaimer {
+  font-size:8px;
+  color:rgba(240,245,240,0.15);
+  font-weight:300;
+  text-align:left;
+  max-width:180px;
+  line-height:1.4;
+}
+
+/* CTA slide special */
+.cta-box {
+  background:rgba(46,204,138,0.07);
+  border:1px solid rgba(46,204,138,0.2);
+  border-radius:10px;
+  padding:14px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.cta-title {
+  font-size:clamp(13px,2.6%,15px);
+  font-weight:700;
+  color:var(--green);
+}
+
+.cta-sub {
+  font-size:11px;
+  color:rgba(240,245,240,0.5);
+  font-weight:300;
+  line-height:1.5;
+}
+
+/* ── NAV ── */
+.carousel-nav {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+}
+
+.nav-btn {
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--green);
+  font-size:18px;
+  width:40px; height:40px;
+  border-radius:50%;
+  cursor:pointer;
+  transition:all 0.18s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Heebo',sans-serif;
+}
+
+.nav-btn:hover { border-color:var(--green); background:rgba(46,204,138,0.07); }
+.nav-btn:disabled { opacity:0.25; cursor:not-allowed; }
+
+.nav-dots {
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+
+.nav-dot {
+  width:6px; height:6px;
+  background:var(--text3);
+  border-radius:50%;
+  transition:all 0.2s;
+  cursor:pointer;
+}
+
+.nav-dot.active {
+  background:var(--green);
+  width:20px;
+  border-radius:3px;
+  box-shadow:0 0 8px rgba(46,204,138,0.5);
+}
+
+/* ── DOWNLOAD ── */
+.dl-section {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn-dl-one {
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-family:'Heebo',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  padding:12px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all 0.18s;
+  text-align:center;
+  min-width:140px;
+}
+
+.btn-dl-one:hover { border-color:var(--green); color:var(--green); }
+
+.btn-dl-all {
+  flex:1;
+  background:var(--green);
+  color:#050a06;
+  font-family:'Heebo',sans-serif;
+  font-size:13px;
+  font-weight:900;
+  padding:12px 16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all 0.2s;
+  text-align:center;
+  min-width:140px;
+}
+
+.btn-dl-all:hover { background:var(--green2); transform:translateY(-1px); }
+.btn-dl-all:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+/* ── LOADER ── */
+.loader-area {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  padding:48px 0;
+}
+
+.loader-area.visible { display:flex; }
+
+.loader-dots {
+  display:flex;
+  gap:8px;
+}
+
+.ld {
+  width:8px; height:8px;
+  background:var(--green);
+  border-radius:50%;
+  animation:ldPulse 1.2s ease infinite;
+}
+
+.ld:nth-child(2) { animation-delay:0.2s; }
+.ld:nth-child(3) { animation-delay:0.4s; }
+
+@keyframes ldPulse {
+  0%,80%,100% { transform:scale(0.6); opacity:0.3; }
+  40% { transform:scale(1); opacity:1; }
+}
+
+.loader-text {
+  color:var(--text2);
+  font-size:14px;
+  font-weight:300;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.carousel-wrap.visible {
+  animation:fadeUp 0.5s ease both;
+}
+
+/* ── FOLLOW SLIDE ── */
+.follow-slide {
+  position:relative;
+  overflow:hidden;
+}
+
+.follow-bg {
+  position:absolute;
+  inset:0;
+  background:linear-gradient(145deg,#050a06 0%,#091510 60%,#050a06 100%);
+}
+
+.follow-orb {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:420px; height:420px;
+  background:radial-gradient(circle,rgba(46,204,138,0.12) 0%,transparent 65%);
+  pointer-events:none;
+}
+
+.follow-content {
+  position:relative;
+  z-index:10;
+  width:100%; height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  font-family:'Heebo',sans-serif;
+  padding:clamp(24px,5%,40px);
+  text-align:center;
+}
+
+.follow-brand-ring {
+  width:72px; height:72px;
+  border-radius:50%;
+  border:2px solid rgba(46,204,138,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:18px;
+  position:relative;
+}
+
+.follow-brand-ring::before {
+  content:'';
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:1px solid rgba(46,204,138,0.1);
+}
+
+.follow-brand-inner {
+  width:56px; height:56px;
+  border-radius:50%;
+  background:rgba(46,204,138,0.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:-1px;
+}
+
+.follow-question {
+  font-size:clamp(11px,2.2%,13px);
+  font-weight:700;
+  color:var(--yellow);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:14px;
+  opacity:0.85;
+}
+
+.follow-headline {
+  font-size:clamp(24px,5.5%,34px);
+  font-weight:900;
+  color:var(--text);
+  line-height:1.2;
+  letter-spacing:-1px;
+  margin-bottom:14px;
+}
+
+.follow-headline span { color:var(--green); }
+
+.follow-rule {
+  width:32px; height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  border-radius:2px;
+  margin:0 auto 14px;
+}
+
+.follow-sub {
+  font-size:clamp(12px,2.5%,14px);
+  font-weight:300;
+  color:rgba(240,245,240,0.55);
+  line-height:1.65;
+  max-width:340px;
+  margin-bottom:22px;
+}
+
+.follow-sub b { color:var(--text); font-weight:700; }
+
+.follow-handle-box {
+  background:rgba(46,204,138,0.08);
+  border:1px solid rgba(46,204,138,0.25);
+  border-radius:10px;
+  padding:10px 22px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px;
+}
+
+.follow-handle-dot {
+  width:7px; height:7px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 8px rgba(46,204,138,0.9);
+  flex-shrink:0;
+}
+
+.follow-handle {
+  font-size:15px;
+  font-weight:800;
+  color:var(--green);
+  letter-spacing:0.5px;
+}
+
+.follow-promise {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  width:100%;
+  max-width:300px;
+}
+
+.follow-promise-item {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:clamp(11px,2.3%,13px);
+  color:rgba(240,245,240,0.6);
+  font-weight:400;
+}
+
+.follow-promise-item::before {
+  content:'✓';
+  color:var(--green);
+  font-weight:900;
+  font-size:11px;
+  flex-shrink:0;
+}
+
+.follow-disclaimer {
+  position:absolute;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:8px;
+  color:rgba(240,245,240,0.15);
+  white-space:nowrap;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <span class="logo-name">בונים <span>הון</span></span>
+    </div>
+    <h1>מחולל <span>סליידים</span> לאינסטגרם</h1>
+    <p>בחר נושא או כתוב חופשי — AI בונה סיפור של 6 סליידים</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="card">
+    <div class="card-label">נושאים מוכנים</div>
+    <div class="topic-grid" id="topicGrid">
+      <button class="topic-btn" onclick="selectTopic(this,'ריבית דריבית וכוח הזמן')">⏳ ריבית דריבית</button>
+      <button class="topic-btn" onclick="selectTopic(this,'למה לא לתזמן את השוק')">📉 תזמון שוק</button>
+      <button class="topic-btn" onclick="selectTopic(this,'פסיכולוגיה של משקיעים והטיות קוגניטיביות')">🧠 פסיכולוגיה</button>
+      <button class="topic-btn" onclick="selectTopic(this,'קניות קטנות וקבועות כל חודש DCA')">📅 השקעה חודשית</button>
+      <button class="topic-btn" onclick="selectTopic(this,'אינפלציה ושחיקת כוח הקנייה')">💸 אינפלציה</button>
+      <button class="topic-btn" onclick="selectTopic(this,'מדד S&P 500 - מה זה ולמה כולם מדברים עליו')">🌍 S&P 500</button>
+      <button class="topic-btn active" onclick="selectTopic(this,'השוואה: מי שקנה דירה ב-2010 מול מי שהשקיע באותו כסף בשוק ההון. דירה ממוצעת עלתה מ-1.08 מיליון ל-2.3 מיליון שקל (113%). אותו כסף ב-S&P 500 הניב תשואה של כ-350%. מה עדיף? ומה רוב הישראלים לא יודעים?')">🏠 דירה מול שוק ההון</button>
+      <button class="topic-btn" onclick="selectTopic(this,'עצמאות פיננסית - מה זה אומר באמת')">🏆 עצמאות פיננסית</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">או כתוב רעיון חופשי</div>
+    <div class="free-row">
+      <textarea id="freeInput" placeholder="לדוגמה: הסבר על ביטקוין כהגנה מפני אינפלציה, או סיפור של מי שהתחיל להשקיע ב-2000 לפני המשבר..."></textarea>
+      <button class="btn-gen" id="genBtn" onclick="generate()">✦ צור<br>סליידים</button>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader-area" id="loaderArea">
+    <div class="loader-dots">
+      <div class="ld"></div><div class="ld"></div><div class="ld"></div>
+    </div>
+    <div class="loader-text" id="loaderText">בונה את הסיפור שלך...</div>
+  </div>
+
+  <!-- Carousel -->
+  <div class="carousel-wrap" id="carouselWrap">
+    <div class="slide-viewport">
+      <div class="slides-track" id="slidesTrack"></div>
+    </div>
+
+    <div class="carousel-nav">
+      <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">›</button>
+      <div class="nav-dots" id="navDots"></div>
+      <button class="nav-btn" id="nextBtn" onclick="navigate(1)">‹</button>
+    </div>
+
+    <div class="dl-section">
+      <button class="btn-dl-one" onclick="downloadCurrent()">⬇ הורד סליייד זה</button>
+      <button class="btn-dl-all" id="dlAllBtn" onclick="downloadAll()">⬇ הורד את כולם (PNG)</button>
+    </div>
+
+    <!-- Caption input -->
+    <div class="card" id="publishCard" style="margin-top:12px;">
+      <div class="card-label">פרסום לאינסטגרם</div>
+      <textarea id="captionInput" placeholder="כתוב כיתוב לפוסט... (אפשר להוסיף האשטאגים)" style="height:90px;width:100%;margin-bottom:10px;"></textarea>
+      <button class="btn-dl-all" id="publishBtn" onclick="publishToInstagram()" style="width:100%;background:#E1306C;font-size:14px;">
+        📸 פרסם קרוסל לאינסטגרם
+      </button>
+      <p id="publishStatus" style="font-size:12px;color:var(--text2);margin-top:8px;text-align:center;min-height:18px;"></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let selectedTopic = 'השוואה: מי שקנה דירה ב-2010 מול מי שהשקיע באותו כסף בשוק ההון. דירה ממוצעת עלתה מ-1.08 מיליון ל-2.3 מיליון שקל (113%). אותו כסף ב-S&P 500 הניב תשואה של כ-350%. מה עדיף? ומה רוב הישראלים לא יודעים?';
+let currentSlide = 0;
+let totalSlides = 0;
+let slidesData = [];
+
+function selectTopic(btn, topic) {
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTopic = topic;
+  document.getElementById('freeInput').value = '';
+}
+
+async function generate() {
+  const free = document.getElementById('freeInput').value.trim();
+  const topic = free || selectedTopic;
+
+  if (!topic) {
+    alert('בחר נושא או כתוב רעיון');
+    return;
+  }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+
+  document.getElementById('loaderArea').classList.add('visible');
+  document.getElementById('carouselWrap').classList.remove('visible');
+  document.getElementById('loaderText').textContent = 'בונה סיפור מ-6 סליידים...';
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic })
+    });
+
+    const parsed = await response.json();
+    if (parsed.error) throw new Error(parsed.error);
+    slidesData = parsed.slides;
+    currentSlide = 0;
+
+    renderCarousel();
+    document.getElementById('loaderArea').classList.remove('visible');
+    document.getElementById('carouselWrap').classList.add('visible');
+
+  } catch(e) {
+    document.getElementById('loaderArea').classList.remove('visible');
+    document.getElementById('loaderText').textContent = 'שגיאה - נסה שוב';
+    alert('שגיאה ביצירת הסליידים: ' + e.message);
+  }
+
+  btn.disabled = false;
+}
+
+function renderCarousel() {
+  const track = document.getElementById('slidesTrack');
+  const dots = document.getElementById('navDots');
+
+  track.innerHTML = '';
+  dots.innerHTML = '';
+
+  // AI slides
+  slidesData.forEach((s, i) => {
+    const frame = document.createElement('div');
+    frame.className = 'slide-frame';
+    frame.id = `slide-frame-${i}`;
+    frame.innerHTML = buildSlideHTML(s, i);
+    track.appendChild(frame);
+
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dots.appendChild(dot);
+  });
+
+  // Fixed follow slide (last)
+  const followIdx = slidesData.length;
+  totalSlides = followIdx + 1;
+
+  const followFrame = document.createElement('div');
+  followFrame.className = 'slide-frame follow-slide';
+  followFrame.id = `slide-frame-${followIdx}`;
+  followFrame.innerHTML = buildFollowSlide(followIdx);
+  track.appendChild(followFrame);
+
+  const followDot = document.createElement('div');
+  followDot.className = 'nav-dot';
+  followDot.onclick = () => goTo(followIdx);
+  dots.appendChild(followDot);
+
+  updateNav();
+}
+
+function buildFollowSlide(idx) {
+  return `
+    <div class="follow-bg"></div>
+    <div class="follow-orb"></div>
+    <div class="slide-grid"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+    <div class="follow-content">
+      <div class="follow-brand-ring">
+        <div class="follow-brand-inner">BH</div>
+      </div>
+      <div class="follow-question">רוצה עוד תוכן כזה?</div>
+      <div class="follow-headline">
+        עקבו אחרינו<br>
+        ו<span>תשארו קדימה</span>
+      </div>
+      <div class="follow-rule"></div>
+      <p class="follow-sub">
+        כל שבוע תוכן <b>פרקטי ופשוט</b> על השקעות פאסיביות,<br>
+        שוק ההון וחופש פיננסי — בלי עומסים ובלי ז'רגון.
+      </p>
+      <div class="follow-handle-box">
+        <div class="follow-handle-dot"></div>
+        <span class="follow-handle">@bonimhon</span>
+      </div>
+      <div class="follow-promise">
+        <div class="follow-promise-item">תוכן שבועי על השקעות פאסיביות</div>
+        <div class="follow-promise-item">טיפים שמשנים הרגלים פיננסיים</div>
+        <div class="follow-promise-item">ללא עלות, ללא ז'רגון</div>
+      </div>
+    </div>
+    <div class="follow-disclaimer">אין לראות בכתוב המלצה לפעולה · בונים הון</div>`;
+}
+
+function buildSlideHTML(s, i) {
+  const isCTA = s.type === 'cta';
+
+  // Format body text: **bold** → <b>
+  const formatText = t => (t || '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+  // Headline: split by \n
+  const headlineLines = (s.headline || '').split('\\n').join('\n').split('\n');
+  const headlineHTML = headlineLines.map((line, idx) => {
+    if (idx === headlineLines.length - 1 && headlineLines.length > 1) {
+      return `<span class="g">${line}</span>`;
+    }
+    return line;
+  }).join('<br>');
+
+  // Stats
+  let statsHTML = '';
+  if (s.stats && s.stats.length > 0) {
+    statsHTML = `<div class="sl-stats">` +
+      s.stats.map((st, si) =>
+        `<div class="sl-stat${si === 1 ? ' y' : ''}">
+          <div class="stat-n">${st.num}</div>
+          <div class="stat-l">${st.label}</div>
+        </div>`
+      ).join('') +
+    `</div>`;
+  }
+
+  // Bullets
+  let bulletsHTML = '';
+  if (s.bullets && s.bullets.length > 0) {
+    bulletsHTML = `<ul class="sl-list">` +
+      s.bullets.map(b => `<li>${formatText(b)}</li>`).join('') +
+    `</ul>`;
+  }
+
+  // CTA box
+  let ctaHTML = '';
+  if (isCTA) {
+    ctaHTML = `<div class="cta-box">
+      <div class="cta-title">🟢 בונים הון</div>
+      <div class="cta-sub">${formatText(s.body)}</div>
+    </div>`;
+  }
+
+  const isLast = i === totalSlides - 1;
+  const swipeText = isLast ? 'סיום' : 'החליקו לסליייד הבא ‹';
+
+  return `
+    <div class="slide-bg"></div>
+    <div class="slide-orb1"></div>
+    <div class="slide-orb2"></div>
+    <div class="slide-grid"></div>
+    <div class="slide-bar"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+    <div class="slide-content">
+      <div class="sl-top">
+        <div class="brand-pill">
+          <div class="bp-dot"></div>
+          <span class="bp-name">בונים הון</span>
+        </div>
+        <span class="sl-counter">0${i+1} · 0${totalSlides}</span>
+      </div>
+      <div class="sl-body">
+        <span class="sl-eyebrow">${s.eyebrow || ''}</span>
+        <div class="sl-headline">${headlineHTML}</div>
+        <div class="sl-rule"></div>
+        ${!isCTA ? `<p class="sl-body-text">${formatText(s.body)}</p>` : ''}
+        ${statsHTML}
+        ${bulletsHTML}
+        ${ctaHTML}
+      </div>
+      <div class="sl-bottom">
+        <span class="sl-swipe">${swipeText}</span>
+        <span class="sl-disclaimer">אין לראות בכתוב המלצה לפעולה</span>
+      </div>
+    </div>`;
+}
+
+function navigate(dir) {
+  goTo(currentSlide + dir);
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= totalSlides) return;
+  currentSlide = idx;
+  const track = document.getElementById('slidesTrack');
+  track.style.transform = `translateX(${idx * 100}%)`;
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+  updateNav();
+}
+
+function updateNav() {
+  document.getElementById('prevBtn').disabled = currentSlide >= totalSlides - 1;
+  document.getElementById('nextBtn').disabled = currentSlide <= 0;
+}
+
+async function captureSlide(idx) {
+  goTo(idx);
+  await new Promise(r => setTimeout(r, 120));
+  const frame = document.getElementById(`slide-frame-${idx}`);
+  return await html2canvas(frame, {
+    width: frame.offsetWidth,
+    height: frame.offsetHeight,
+    scale: Math.ceil(1080 / frame.offsetWidth),
+    backgroundColor: '#050a06',
+    useCORS: true,
+    logging: false
+  });
+}
+
+async function downloadCurrent() {
+  const canvas = await captureSlide(currentSlide);
+  const a = document.createElement('a');
+  a.download = `bonimhon-slide-0${currentSlide + 1}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+async function downloadAll() {
+  const btn = document.getElementById('dlAllBtn');
+  btn.disabled = true;
+
+  for (let i = 0; i < totalSlides; i++) {
+    btn.textContent = `⏳ מוריד ${i+1}/${totalSlides}...`;
+    const canvas = await captureSlide(i);
+    const a = document.createElement('a');
+    a.download = `bonimhon-slide-0${i+1}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  btn.textContent = '⬇ הורד את כולם (PNG)';
+  btn.disabled = false;
+  goTo(0);
+}async function publishToInstagram() {
+  const btn = document.getElementById('publishBtn');
+  const status = document.getElementById('publishStatus');
+  const caption = document.getElementById('captionInput').value || 'בונים הון | השקעות פאסיביות 🟢';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ מכין תמונות...';
+  status.textContent = '';
+
+  try {
+    // Capture all slides as base64
+    const imageUrls = [];
+    for (let i = 0; i < totalSlides; i++) {
+      status.textContent = `ממיר סליייד ${i+1}/${totalSlides}...`;
+      const canvas = await captureSlide(i);
+      imageUrls.push(canvas.toDataURL('image/png'));
+    }
+
+    status.textContent = 'מעלה לאינסטגרם...';
+
+    const res = await fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images: imageUrls, caption })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      status.style.color = '#2ecc8a';
+      status.textContent = '✅ הקרוסל פורסם בהצלחה לאינסטגרם!';
+    } else {
+      throw new Error(data.error);
+    }
+  } catch(e) {
+    status.style.color = '#ff6b6b';
+    status.textContent = 'שגיאה: ' + e.message;
+  }
+
+  btn.textContent = '📸 פרסם קרוסל לאינסטגרם';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
