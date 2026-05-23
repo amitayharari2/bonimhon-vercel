@@ -1120,9 +1120,9 @@ function buildSlideHTML(s, i) {
   const headlineLines = (s.headline || '').split('|');
   const headlineHTML = headlineLines.map((line, idx) => {
     if (idx === headlineLines.length - 1 && headlineLines.length > 1) {
-      return `<span class="g">${line}</span>`;
+      return `<span class="g">${formatText(line)}</span>`;
     }
-    return line;
+    return formatText(line);
   }).join('<br>');
 
   // Stats
@@ -1132,8 +1132,8 @@ function buildSlideHTML(s, i) {
     statsHTML = `<div class="sl-stats">` +
       validStats.map((st, si) =>
         `<div class="sl-stat${si === 1 ? ' y' : ''}">
-          <div class="stat-n">${st.num ?? st.value ?? st.number ?? st.stat ?? ""}</div>
-          <div class="stat-l">${st.label ?? st.text ?? st.description ?? ""}</div>
+          <div class="stat-n" contenteditable="true" spellcheck="false">${st.num ?? st.value ?? st.number ?? st.stat ?? ""}</div>
+          <div class="stat-l" contenteditable="true" spellcheck="false">${st.label ?? st.text ?? st.description ?? ""}</div>
         </div>`
       ).join('') +
     `</div>`;
@@ -1143,7 +1143,7 @@ function buildSlideHTML(s, i) {
   let bulletsHTML = '';
   if (s.bullets && s.bullets.length > 0) {
     bulletsHTML = `<ul class="sl-list">` +
-      s.bullets.map(b => `<li>${formatText(b)}</li>`).join('') +
+      s.bullets.map(b => `<li contenteditable="true" spellcheck="false">${formatText(b)}</li>`).join('') +
     `</ul>`;
   }
 
