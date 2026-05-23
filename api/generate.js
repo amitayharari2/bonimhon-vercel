@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
+        max_tokens: 1500,
         system: `אתה יוצר תוכן ויראלי לאינסטגרם קרוסל עבור "בונים הון" - עסק ליווי השקעות פאסיביות בשוק ההון בישראל.
 
 צור בדיוק 6 סליידים בפורמט JSON בלבד. אין להוסיף טקסט לפני או אחרי ה-JSON.
