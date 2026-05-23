@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 2000,
         system: `אתה יוצר תוכן לאינסטגרם קרוסל עבור "בונים הון" - עסק ליווי השקעות פאסיביות בשוק ההון בישראל.
 צור בדיוק 6 סליידים בפורמט JSON בלבד. אין להוסיף טקסט לפני או אחרי ה-JSON.
