@@ -1122,12 +1122,13 @@ function buildSlideHTML(s, i) {
 
   // Stats
   let statsHTML = '';
-  if (s.stats && s.stats.length > 0) {
+  const validStats = (s.stats || []).filter(st => st.num || st.value || st.number);
+  if (validStats.length > 0) {
     statsHTML = `<div class="sl-stats">` +
-      s.stats.map((st, si) =>
+      validStats.map((st, si) =>
         `<div class="sl-stat${si === 1 ? ' y' : ''}">
-          <div class="stat-n">${st.num}</div>
-          <div class="stat-l">${st.label}</div>
+          <div class="stat-n">${st.num ?? st.value ?? st.number ?? st.stat ?? ""}</div>
+          <div class="stat-l">${st.label ?? st.text ?? st.description ?? ""}</div>
         </div>`
       ).join('') +
     `</div>`;
