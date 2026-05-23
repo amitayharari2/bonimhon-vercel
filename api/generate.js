@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
     const toolUse = anthropicData.content.find(c => c.type === 'tool_use');
     if (!toolUse || !toolUse.input || !toolUse.input.slides) {
-      return res.status(500).json({ error: 'No tool response found' });
+      return res.status(500).json({ error: 'No tool response found', debug: JSON.stringify(anthropicData.content).substring(0, 300) });
     }
 
     return res.status(200).json(toolUse.input);
