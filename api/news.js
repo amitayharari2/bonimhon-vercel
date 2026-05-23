@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 2000,
+        max_tokens: 1000,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         system: `אתה עוזר לעסק בישראל שמייצר תוכן על שוק ההון והשקעות.
 חפש 5 חדשות פיננסיות חמות מהיומיים האחרונים הרלוונטיות לישראלים.
@@ -52,17 +52,18 @@ export default async function handler(req, res) {
       .map(c => c.text)
       .join('');
 
-    // Extract JSON object from anywhere in the text
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return res.status(500).json({ error: 'No JSON found in response: ' + rawText.substring(0, 200) });
+      return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 200) });
     }
 
-    const clean = jsonMatch[0]
-      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '')
-      .trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0].replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ''));
+    } catch(e) {
+      parsed = JSON.parse(jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, ''));
+    }
 
-    const parsed = JSON.parse(clean);
     return res.status(200).json(parsed);
 
   } catch (err) {
