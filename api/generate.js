@@ -79,6 +79,7 @@ export default async function handler(req, res) {
       .join('')
       .replace(/```json\s*/gi, '')
       .replace(/```\s*/g, '')
+      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '') // remove bad control chars except \n and \r
       .trim();
 
     const parsed = JSON.parse(raw);
