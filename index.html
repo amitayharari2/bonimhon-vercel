@@ -523,6 +523,11 @@ textarea::placeholder { color:var(--text3); }
   line-height:1.4;
 }
 
+/* Editable elements */
+[contenteditable] { outline: none; cursor: text; }
+[contenteditable]:hover { background: rgba(255,255,255,0.05); border-radius: 4px; }
+[contenteditable]:focus { background: rgba(255,255,255,0.08); border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.2); }
+
 /* CTA slide special */
 .cta-box {
   background:rgba(46,204,138,0.07);
@@ -1172,7 +1177,7 @@ function buildSlideHTML(s, i) {
       </div>
       <div class="sl-body">
         <span class="sl-eyebrow">${s.eyebrow || ''}</span>
-        <div class="sl-headline">${headlineHTML}</div>
+        <div class="sl-headline" contenteditable="true" spellcheck="false">${headlineHTML}</div>
         <div class="sl-rule"></div>
         ${!isCTA ? `<p class="sl-body-text">${formatText(s.body)}</p>` : ''}
         ${statsHTML}
