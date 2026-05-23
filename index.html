@@ -1112,7 +1112,7 @@ function buildSlideHTML(s, i) {
   const formatText = t => (t || '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
   // Headline: split by \n
-  const headlineLines = (s.headline || '').split('\\n').join('\n').split('\n');
+  const headlineLines = (s.headline || '').split('|');
   const headlineHTML = headlineLines.map((line, idx) => {
     if (idx === headlineLines.length - 1 && headlineLines.length > 1) {
       return `<span class="g">${line}</span>`;
