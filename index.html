@@ -911,6 +911,7 @@ async function generate() {
 
     const parsed = await response.json();
     if (parsed.error) throw new Error(parsed.error);
+    if (!parsed.slides) throw new Error('תגובה לא תקינה מהשרת: ' + JSON.stringify(parsed));
     slidesData = parsed.slides;
     currentSlide = 0;
 
