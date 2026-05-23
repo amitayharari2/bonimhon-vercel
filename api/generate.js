@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         max_tokens: 900,
         system: `צור 6 סליידים לקרוסל אינסטגרם עבור "בונים הון" — השקעות פאסיביות בישראל.
 החזר JSON בלבד, ללא טקסט נוסף:
-{"topic_title":"כותרת","slides":[{"num":1,"type":"hook","eyebrow":"תגית","headline":"שורה\nשורה\nשורה","body":"משפט. **מילה**.","stats":[],"bullets":[]}]}
+{"topic_title":"כותרת","slides":[{"num":1,"type":"hook","eyebrow":"תגית","headline":"שורה\\nשורה\\nשורה","body":"משפט. **מילה**.","stats":[],"bullets":[]}]}
 
 חוקי כתיבה:
 • כל שורה = 3-5 מילים בלבד
@@ -52,29 +52,42 @@ export default async function handler(req, res) {
       .map(c => c.text || '')
       .join('');
 
-    // Extract JSON object
+    // Extract JSON object from the response
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 200) });
     }
 
-    const clean = jsonMatch[0]
-      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '') // remove all control chars except \n \r
-      .replace(/\n/g, '\\n') // escape newlines inside strings
-      .replace(/\r/g, '')
-      .trim();
-
     let parsed;
     try {
-      parsed = JSON.parse(clean);
-    } catch(e) {
-      // Try more aggressive cleaning
-      const aggressive = clean.replace(/[\x00-\x1F\x7F]/g, '');
-      parsed = JSON.parse(aggressive);
+      // First attempt: parse directly (works when model returns clean JSON)
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (e1) {
+      try {
+        // Second attempt: remove only control chars that are NEVER valid in JSON strings
+        // (0x00-0x08, 0x0B, 0x0C, 0x0E-0x1F) — preserve \n (0x0A) and \r (0x0D)
+        const cleaned = jsonMatch[0].replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        parsed = JSON.parse(cleaned);
+      } catch (e2) {
+        // Third attempt: replace literal newlines inside string values only
+        // by using a state-machine-style replacer
+        try {
+          const fixed = jsonMatch[0]
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // strip bad control chars
+            .replace(/\n/g, ' ')  // turn newlines into spaces as last resort
+            .replace(/\r/g, '');
+          parsed = JSON.parse(fixed);
+        } catch (e3) {
+          return res.status(500).json({ 
+            error: 'JSON parse failed: ' + e3.message,
+            raw: rawText.substring(0, 500)
+          });
+        }
+      }
     }
     
     if (!parsed.slides) {
-      return res.status(500).json({ error: 'Invalid response structure: ' + raw.substring(0, 200) });
+      return res.status(500).json({ error: 'Invalid response structure: ' + JSON.stringify(parsed).substring(0, 200) });
     }
 
     return res.status(200).json(parsed);
