@@ -47,16 +47,22 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: data.error?.message || 'API error' });
     }
 
-    const text = data.content
+    const rawText = data.content
       .filter(c => c.type === 'text')
       .map(c => c.text)
-      .join('')
-      .replace(/```json\s*/gi, '')
-      .replace(/```\s*/g, '')
+      .join('');
+
+    // Extract JSON object from anywhere in the text
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(500).json({ error: 'No JSON found in response: ' + rawText.substring(0, 200) });
+    }
+
+    const clean = jsonMatch[0]
       .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '')
       .trim();
 
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(clean);
     return res.status(200).json(parsed);
 
   } catch (err) {
