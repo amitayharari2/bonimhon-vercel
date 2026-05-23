@@ -20,12 +20,13 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 800,
-        system: `Return ONLY valid JSON with no other text before or after it:
-{"news":[{"headline":"כותרת","viral_angle":"זווית","context":"הקשר"}]}
-Exactly 3 news items about financial markets relevant to Israeli investors this week. All values in Hebrew.`,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        system: `Return ONLY valid JSON, nothing else:
+{"news":[{"headline":"כותרת בעברית","viral_angle":"זווית ויראלית בעברית","context":"הקשר קצר בעברית"}]}
+Exactly 3 items. Search for today's top financial news relevant to Israeli investors. All values in Hebrew.`,
         messages: [{ 
           role: 'user', 
-          content: '3 hot financial news items this week with viral angles for Israeli investors.' 
+          content: 'Search: top financial market news today Israel stocks' 
         }]
       })
     });
