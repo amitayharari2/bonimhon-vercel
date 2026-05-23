@@ -22,46 +22,20 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 1500,
-        system: `אתה יוצר תוכן ויראלי לאינסטגרם קרוסל עבור "בונים הון" - עסק ליווי השקעות פאסיביות בשוק ההון בישראל.
+        max_tokens: 900,
+        system: `צור 6 סליידים לקרוסל אינסטגרם עבור "בונים הון" — השקעות פאסיביות בישראל.
+החזר JSON בלבד, ללא טקסט נוסף:
+{"topic_title":"כותרת","slides":[{"num":1,"type":"hook","eyebrow":"תגית","headline":"שורה\nשורה\nשורה","body":"משפט. **מילה**.","stats":[],"bullets":[]}]}
 
-צור בדיוק 6 סליידים בפורמט JSON בלבד. אין להוסיף טקסט לפני או אחרי ה-JSON.
+חוקי כתיבה:
+• כל שורה = 3-5 מילים בלבד
+• כל סליייד = רעיון אחד
+• מילה אחת **מודגשת** בכל סליייד
+• סיפור שמבנה מתח — כל סליייד מושך לבא
+• שפה פשוטה, ישירה, בלי ז'רגון
 
-עקרונות כתיבה (חובה):
-- כל שורה = מחשבה אחת. 3-5 מילים בשורה. לא יותר.
-- כל סליייד = רעיון אחד בלבד.
-- ספר סיפור — אנשי, היסטורי, או עם מספרים אמיתיים. לא תיאוריה יבשה.
-- כל סליייד מסתיים בנקודה שמושכת לבא.
-- מילה אחת מודגשת בכל סליייד (עם **כוכביות**) — זו המילה שקופצת לעין.
-- שפה ישירה כאילו מדבר עם חבר. אין ז'רגון.
-- בנה מתח לאורך הקרוסל — הקורא חייב לגלול.
-- סליייד אחרון מסתיים בשאלה פתוחה שמזמינה תגובות.
-
-פורמט JSON:
-{
-  "topic_title": "כותרת קצרה",
-  "slides": [
-    {
-      "num": 1,
-      "type": "hook",
-      "eyebrow": "תגית קצרה",
-      "headline": "שורה\nשורה\nשורה",
-      "body": "משפט קצר. **מילה** מודגשת.",
-      "stats": [],
-      "bullets": []
-    }
-  ]
-}
-
-מבנה הסליידים:
-- סליייד 1 (hook): עובדה מזעזעת או שאלה שמכאיבה. כותרת שגורמת לעצור בגלילה.
-- סליייד 2 (story): הסיפור / הבעיה. bullets (3 נקודות, 3-4 מילים כל אחת).
-- סליייד 3 (insight): התובנה המרכזית. stats + משפט אחד.
-- סליייד 4 (data): נתונים אמיתיים ומספרים קונקרטיים. stats (2 נתונים).
-- סליייד 5 (lesson): מוסר ההשכל. bullets (3 נקודות קצרות) + משפט סיכום.
-- סליייד 6 (cta): body = "אתם חושבים שזה **נדיר**?\nזה קורה כל יום.\nרק מי שיודע — מרוויח." ואז שאלה פתוחה קצרה שמזמינה תגובה. stats=[] bullets=[].
-
-אין המלצות על מוצרים ספציפיים. הכל בעברית.`,
+מבנה: 1=hook(עובדה מזעזעת), 2=story+bullets(3×3מילים), 3=insight+stats, 4=data+stats(2נתונים), 5=lesson+bullets(3×3מילים), 6=cta(שאלה פתוחה שמזמינה תגובה)
+אסור: המלצות ספציפיות. הכל בעברית.`,
         messages: [{ role: 'user', content: `נושא: ${topic}` }]
       })
     });
@@ -74,15 +48,30 @@ export default async function handler(req, res) {
       });
     }
 
-    const raw = anthropicData.content
+    const rawText = anthropicData.content
       .map(c => c.text || '')
-      .join('')
-      .replace(/```json\s*/gi, '')
-      .replace(/```\s*/g, '')
-      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '') // remove bad control chars except \n and \r
+      .join('');
+
+    // Extract JSON object
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 200) });
+    }
+
+    const clean = jsonMatch[0]
+      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '') // remove all control chars except \n \r
+      .replace(/\n/g, '\\n') // escape newlines inside strings
+      .replace(/\r/g, '')
       .trim();
 
-    const parsed = JSON.parse(raw);
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      // Try more aggressive cleaning
+      const aggressive = clean.replace(/[\x00-\x1F\x7F]/g, '');
+      parsed = JSON.parse(aggressive);
+    }
     
     if (!parsed.slides) {
       return res.status(500).json({ error: 'Invalid response structure: ' + raw.substring(0, 200) });
