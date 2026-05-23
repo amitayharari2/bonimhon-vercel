@@ -58,32 +58,57 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'No JSON found: ' + rawText.substring(0, 200) });
     }
 
+    // Fix unescaped newlines/tabs that appear INSIDE JSON string values.
+    // We walk char-by-char tracking whether we're inside a string,
+    // and escape any raw \n or \t we find there.
+    function fixJsonStrings(str) {
+      let result = '';
+      let inString = false;
+      let escape = false;
+
+      for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+
+        if (escape) {
+          result += ch;
+          escape = false;
+          continue;
+        }
+
+        if (ch === '\\' && inString) {
+          escape = true;
+          result += ch;
+          continue;
+        }
+
+        if (ch === '"') {
+          inString = !inString;
+          result += ch;
+          continue;
+        }
+
+        if (inString) {
+          // These are the chars that break JSON when literal inside a string
+          if (ch === '\n') { result += '\\n'; continue; }
+          if (ch === '\r') { result += '\\r'; continue; }
+          if (ch === '\t') { result += '\\t'; continue; }
+          // Strip other control chars
+          if (ch.charCodeAt(0) < 0x20) continue;
+        }
+
+        result += ch;
+      }
+      return result;
+    }
+
     let parsed;
     try {
-      // First attempt: parse directly (works when model returns clean JSON)
-      parsed = JSON.parse(jsonMatch[0]);
-    } catch (e1) {
-      try {
-        // Second attempt: remove only control chars that are NEVER valid in JSON strings
-        // (0x00-0x08, 0x0B, 0x0C, 0x0E-0x1F) — preserve \n (0x0A) and \r (0x0D)
-        const cleaned = jsonMatch[0].replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-        parsed = JSON.parse(cleaned);
-      } catch (e2) {
-        // Third attempt: replace literal newlines inside string values only
-        // by using a state-machine-style replacer
-        try {
-          const fixed = jsonMatch[0]
-            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // strip bad control chars
-            .replace(/\n/g, ' ')  // turn newlines into spaces as last resort
-            .replace(/\r/g, '');
-          parsed = JSON.parse(fixed);
-        } catch (e3) {
-          return res.status(500).json({ 
-            error: 'JSON parse failed: ' + e3.message,
-            raw: rawText.substring(0, 500)
-          });
-        }
-      }
+      parsed = JSON.parse(fixJsonStrings(jsonMatch[0]));
+    } catch (e) {
+      return res.status(500).json({ 
+        error: 'JSON parse failed: ' + e.message,
+        raw: rawText.substring(0, 500)
+      });
     }
     
     if (!parsed.slides) {
