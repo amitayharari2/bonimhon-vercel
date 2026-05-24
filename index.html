@@ -1267,7 +1267,9 @@ async function downloadAll() {
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    renderSlides(data.slides);
+    window.slides = data.slides;
+    window.currentSlide = 0;
+    renderCarousel();
     document.getElementById('slidesSection').style.display = 'block';
     document.getElementById('slidesSection').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
