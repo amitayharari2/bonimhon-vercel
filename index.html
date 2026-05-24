@@ -1299,12 +1299,26 @@ async function publishToInstagram() {
       imageUrls.push(canvas.toDataURL('image/png'));
     }
 
-    status.textContent = 'מעלה לאינסטגרם...';
+    // Upload images one by one to Vercel Blob
+    const publicUrls = [];
+    for (let i = 0; i < imageUrls.length; i++) {
+      status.textContent = `מעלה תמונה ${i+1}/${imageUrls.length}...`;
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: [imageUrls[i]] })
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.urls) throw new Error(uploadData.error || 'שגיאה בהעלאת תמונה');
+      publicUrls.push(uploadData.urls[0]);
+    }
+
+    status.textContent = 'מפרסם לאינסטגרם...';
 
     const res = await fetch('/api/publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ images: imageUrls, caption })
+      body: JSON.stringify({ images: publicUrls, caption })
     });
 
     const data = await res.json();
