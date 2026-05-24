@@ -1267,11 +1267,12 @@ async function downloadAll() {
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    window.slides = data.slides;
-    window.currentSlide = 0;
+    slidesData = data.slides;
+    currentSlide = 0;
     renderCarousel();
-    document.getElementById('slidesSection').style.display = 'block';
-    document.getElementById('slidesSection').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('loaderArea').classList.remove('visible');
+    document.getElementById('carouselWrap').classList.add('visible');
+    document.getElementById('carouselWrap').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
     alert('שגיאה ביצירת הסיפור: ' + e.message);
   } finally {
