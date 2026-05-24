@@ -875,6 +875,7 @@ textarea::placeholder { color:var(--text3); }
   <div class="card">
     <div class="card-label">🔥 חדשות חמות — זווית ויראלית</div>
     <button class="btn-news" id="newsBtn" onclick="fetchHotNews()">⚡ מה חם בשוק עכשיו?</button>
+    <button class="btn-news" id="historyBtn" onclick="generateHistory()" style="background:linear-gradient(135deg,#6c3483,#9b59b6);margin-top:8px;">📜 סיפור היסטורי מפתיע</button>
     <div id="newsResults" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:8px;"></div>
   </div>
 
@@ -1250,7 +1251,34 @@ async function downloadAll() {
   btn.textContent = '⬇ הורד את כולם (PNG)';
   btn.disabled = false;
   goTo(0);
-}async function publishToInstagram() {
+}async function generateHistory() {
+  const btn = document.getElementById('historyBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ בוחר סיפור...';
+  
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('freeInput').value = '';
+  
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: 'סיפור היסטורי מפתיע: בחר בעצמך סיפור היסטורי מרתק שקשור לכסף, השקעות, או כלכלה. תהיה יצירתי ובחר סיפור פחות מוכר שיפתיע את הקורא. השתמש בפרטים ספציפיים ואמיתיים.' })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderSlides(data.slides);
+    document.getElementById('slidesSection').style.display = 'block';
+    document.getElementById('slidesSection').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    alert('שגיאה ביצירת הסיפור: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📜 סיפור היסטורי מפתיע';
+  }
+}
+
+async function publishToInstagram() {
   const btn = document.getElementById('publishBtn');
   const status = document.getElementById('publishStatus');
   const caption = document.getElementById('captionInput').value || 'בונים הון | השקעות פאסיביות 🟢';

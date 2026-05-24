@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const containerIds = [];
     for (const imageUrl of images) {
       const r = await fetch(
-        `https://graph.facebook.com/v19.0/${igUserId}/media`,
+        `https://graph.facebook.com/v25.0/${igUserId}/media`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // Step 2: Create carousel container
     const carouselRes = await fetch(
-      `https://graph.facebook.com/v19.0/${igUserId}/media`,
+      `https://graph.facebook.com/v25.0/${igUserId}/media`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
     // Step 3: Publish
     const publishRes = await fetch(
-      `https://graph.facebook.com/v19.0/${igUserId}/media_publish`,
+      `https://graph.facebook.com/v25.0/${igUserId}/media_publish`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
