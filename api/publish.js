@@ -54,6 +54,9 @@ export default async function handler(req, res) {
     console.log('Carousel response:', JSON.stringify(carouselData));
     if (!carouselData.id) throw new Error(`Failed to create carousel: ${JSON.stringify(carouselData)}`);
 
+    // Wait for Instagram to process the media
+    await new Promise(resolve => setTimeout(resolve, 8000));
+
     // Step 3: Publish
     const publishRes = await fetch(
       `https://graph.facebook.com/v25.0/${igUserId}/media_publish`,
