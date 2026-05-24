@@ -31,6 +31,7 @@ export default async function handler(req, res) {
         }
       );
       const data = await r.json();
+      console.log('Container response:', JSON.stringify(data));
       if (!data.id) throw new Error(`Failed to create container: ${JSON.stringify(data)}`);
       containerIds.push(data.id);
     }
@@ -50,6 +51,7 @@ export default async function handler(req, res) {
       }
     );
     const carouselData = await carouselRes.json();
+    console.log('Carousel response:', JSON.stringify(carouselData));
     if (!carouselData.id) throw new Error(`Failed to create carousel: ${JSON.stringify(carouselData)}`);
 
     // Step 3: Publish
@@ -65,10 +67,14 @@ export default async function handler(req, res) {
       }
     );
     const publishData = await publishRes.json();
+    console.log('Publish response:', JSON.stringify(publishData));
+
+    if (!publishData.id) throw new Error(`Failed to publish: ${JSON.stringify(publishData)}`);
 
     return res.status(200).json({ success: true, id: publishData.id });
 
   } catch (err) {
+    console.error('Publish error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 }
